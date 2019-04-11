@@ -10,25 +10,56 @@ import {ApiService} from '../core/api.service';
 })
 export class AddUserComponent implements OnInit {
 
-  constructor(private formBuilder: FormBuilder, private router: Router, private apiService: ApiService) { }
-
   addForm: FormGroup;
+  submitted = false;
+  loading = false;
+  error = {
+    email: '',
+    password: '',
+    firstName: '',
+    lastName: '',
+    age: '',
+    salary: ''
+  };
+  constructor(private formBuilder: FormBuilder,
+              private router: Router,
+              private apiService: ApiService) { }
+
+
 
   ngOnInit() {
 
     this.addForm = this.formBuilder.group({
-      id: [],
-      email: ['', Validators.required],
+      email: ['', [Validators.required, Validators.email]],
+      password: ['', [Validators.required, Validators.minLength(6)]],
       firstName: ['', Validators.required],
-      lastName: ['', Validators.required]
+      lastName: ['', Validators.required],
+      age: ['', Validators.required],
+      salary: ['', Validators.required]
     });
 
   }
+  // convenience getter for easy access to form fields
+  get f() { return this.addForm.controls; }
 
   onSubmit() {
+
+    this.submitted = true;
+    if (this.addForm.invalid) {
+      return;
+    }
+    this.loading = true;
+
     this.apiService.createUser(this.addForm.value)
-      .subscribe( data => {
+      .subscribe(
+      data => {
         this.router.navigate(['list-user']);
-      });
+      },
+      badReasponse => {
+        this.error = badReasponse.error;
+        console.log('----error-----', this.error);
+        this.loading = false;
+      }
+    );
   }
 }
